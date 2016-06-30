@@ -14,14 +14,21 @@ socket.setEncoding('utf8');
 
 socket.connect({ port: CONFIG.PORT}, () => {
   console.log('Connected to server!');
-  rl.question('Enter username: ', function (username) {
-    console.log('Welcome ' + username);
-    process.stdin.on('data', (data) => {
-      socket.write('User ' + username + ' from ' + socket.localAddress + socket.localPort + ': ' + data);
-    });
-  });
 }); //writable socket
 
+socket.on('connect', () => {
+  rl.question('Enter username: ', (username) => {
+    if(username.toLowerCase() === 'admin'){
+      console.log('You must come up with another username.');
+      socket.emit('connect');
+    }else{
+      console.log('Welcome ' + username);
+      process.stdin.on('data', (data) => {
+        socket.write('User ' + username + ' from ' + socket.localAddress + socket.localPort + ': ' + data);
+      });
+    }
+  });
+});
 
 
 socket.on('data', (data) => {
