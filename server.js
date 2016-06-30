@@ -5,12 +5,12 @@ var CONFIG = require('./config');
 var server = net.createServer(function (socket) { //readable socket
   //connection listener
   console.log('Somebody connected!');
-  socket.write('Hello\n');
 
   socket.setEncoding('utf8');
 
   socket.on('data', (data) => {
     console.log(data);
+    socket.write(data);
   });
 
   socket.on('end', () => {
