@@ -31,7 +31,7 @@ socket.on('data', (data) => {
   } else if(data.slice(0,7).toLowerCase() === 'welcome'){
     console.log('Start chatting!');
     process.stdin.on('data', (data) => {
-      socket.write(socket.localAddress + socket.localPort + ': ' + data);
+      socket.write(data);
     });
   }
 });

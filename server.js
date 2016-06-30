@@ -13,7 +13,6 @@ var server = net.createServer(function (socket) { //readable socket
   socket.setEncoding('utf8');
 
   socket.on('data', (data) => {
-    console.log(data);
     if(socket.username === undefined){
       if(data.toLowerCase() === 'admin' || data.toUpperCase() === '[ADMIN]') {
         socket.write('You cannot have "admin" in your username.');
@@ -28,8 +27,9 @@ var server = net.createServer(function (socket) { //readable socket
       }
     }else{
       connectedSockets.forEach(function (element) {
-        element.write(data);
+        element.write('User "' + socket.username + '"' + ': ' + data);
       });
+      console.log('User "' + socket.username + '"' + ': ' + data);
     }
   });
 
