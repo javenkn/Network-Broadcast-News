@@ -33,6 +33,10 @@ var server = net.createServer(function (socket) { //readable socket
     }
   });
 
+  process.stdin.on('data', (data) => {
+      socket.write('[ADMIN]: ' + data);
+  });
+
   socket.on('end', () => {
     console.log('Client disconnected.');
   });
