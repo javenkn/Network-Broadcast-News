@@ -17,22 +17,23 @@ socket.connect({ port: CONFIG.PORT}, () => {
 }); //writable socket
 
 socket.on('connect', () => {
-  rl.question('Enter username: ', (username) => {
-    if(username.toLowerCase() === 'admin'){
-      console.log('You must come up with another username.');
-      socket.emit('connect');
-    }else{
-      console.log('Welcome ' + username);
-      process.stdin.on('data', (data) => {
-        socket.write('User ' + username + ' from ' + socket.localAddress + socket.localPort + ': ' + data);
-      });
-    }
-  });
+    rl.question('Enter username: ', (username) => {
+      socket.write(username);
+    });
 });
-
 
 socket.on('data', (data) => {
   console.log(data);
+  if(data === 'You cannot have "admin" in your username.' || data === 'Choose another username.'){
+    rl.question('Enter username: ', (username) => {
+      socket.write(username);
+    });
+  } else if(data.slice(0,7).toLowerCase() === 'welcome'){
+    console.log('Start chatting!');
+    process.stdin.on('data', (data) => {
+      socket.write(socket.localAddress + socket.localPort + ': ' + data);
+    });
+  }
 });
 
 socket.on('close', () => {

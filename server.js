@@ -4,6 +4,8 @@ var CONFIG = require('./config');
 
 var connectedSockets = [];
 
+var socketUsernames = [];
+
 var server = net.createServer(function (socket) { //readable socket
   //connection listener
   console.log('Somebody connected!');
@@ -12,9 +14,23 @@ var server = net.createServer(function (socket) { //readable socket
 
   socket.on('data', (data) => {
     console.log(data);
-    connectedSockets.forEach(function (element) {
-      element.write(data);
-    });
+    if(socket.username === undefined){
+      if(data.toLowerCase() === 'admin' || data.toUpperCase() === '[ADMIN]') {
+        socket.write('You cannot have "admin" in your username.');
+      } else if(socketUsernames.indexOf(data) === -1) {
+        socketUsernames.push(data);
+        socket.username = data;
+        socket.write('Welcome ' + socket.username);
+        console.log(socketUsernames);
+      } else {
+        socket.write('Choose another username.');
+        console.log('MATCHING');
+      }
+    }else{
+      connectedSockets.forEach(function (element) {
+        element.write(data);
+      });
+    }
   });
 
   socket.on('end', () => {
