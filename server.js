@@ -56,6 +56,8 @@ var server = net.createServer(function (socket) { //readable socket
             connectedSockets.splice(index, 1);
             //ends the socket so that the client disconnects
             element.emit('end');
+          }else{
+            console.log('There is no user with that username.');
           }
         });
       }else if(data.toString().slice(0,4) === 'kick'){
@@ -75,6 +77,8 @@ var server = net.createServer(function (socket) { //readable socket
             connectedSockets.splice(index, 1);
             //ends the socket so that the client disconnects
             element.emit('end');
+          }else{
+            console.log('There is no user with that IP/Port.');
           }
         });
       }else{ // if the admin doesn't want to ban/kick someone
