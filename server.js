@@ -3,7 +3,6 @@ var net = require('net');
 var CONFIG = require('./config');
 
 var connectedSockets = [];
-
 var socketUsernames = [];
 
 var server = net.createServer(function (socket) { //readable socket
@@ -11,6 +10,8 @@ var server = net.createServer(function (socket) { //readable socket
   console.log('Somebody connected!');
   connectedSockets.push(socket);
   socket.setEncoding('utf8');
+  //create an object for the seconds rate limiter
+  var objOfTimes = {};
 
   socket.on('data', (data) => {
     if(socket.username === undefined){ //if there is no username
@@ -27,16 +28,52 @@ var server = net.createServer(function (socket) { //readable socket
         console.log('MATCHING');
       }
     }else{ //if the socket has an username
+      var date = new Date();
+      var timeMs = Date.now();
+      //shows up only to the seconds place
+      var simplifiedTime = timeMs.toString().slice(0, -3);
+
       connectedSockets.forEach(function (element) {
         // transfer the information that is being passed around
         element.write('User "' + socket.username + '"' + ' from ' +
           socket.remoteAddress.slice(7) + ':' + socket.remotePort + ': ' + data);
+        element.write(date.toString());
       });
       // print it out on the server
       console.log('User "' + socket.username + '"' + ' from ' +
           socket.remoteAddress.slice(7) + ':' + socket.remotePort + ': ' + data);
+      console.log(date.toString());
+
+      // checks if the object has a key which is "simplifiedTime"
+        // if it does then it checks if it is greater than or equal to 3
+            // if it is greater than 3 it kicks the client
+        // else continues on
+      // if the object doesn't have the specified key
+      // it creates one and sets that value to 1
+      if(objOfTimes[simplifiedTime]){
+        objOfTimes[simplifiedTime]++;
+        if(objOfTimes[simplifiedTime] >= 3){
+          socket.write('Too many posts per second! Must be 3 messages/second.');
+          connectedSockets.forEach(function (element, index, array) {
+            if(connectedSockets[index].username === socket.username){
+              if(socketUsernames.indexOf(connectedSockets[index].username) !== -1){
+                socketUsernames.splice(index, 1);
+              }
+              connectedSockets.splice(index, 1);
+            }else{
+              console.log('There is no user with that username.');
+            }
+          });
+          socket.emit('end');
+          console.log('User "' + socket.username + '" has been kicked.');
+        }
+      }else{
+        objOfTimes[simplifiedTime] = 1;
+      }
     }
   });
+
+
 
   //this is for the server input if the admin wants to write/ban something/someone
   process.stdin.on('data', (data) => {
