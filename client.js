@@ -23,7 +23,6 @@ socket.on('connect', () => {
 });
 
 socket.on('data', (data) => {
-  console.log(data);
   if(data === 'You cannot have "admin" in your username.' || data === 'Choose another username.'){
     rl.question('Enter username: ' + '\n', (username) => {
       socket.write(username);
@@ -34,6 +33,7 @@ socket.on('data', (data) => {
       socket.write(data);
     });
   }
+  console.log(data);
 });
 
 socket.on('close', () => {

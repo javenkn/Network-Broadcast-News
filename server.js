@@ -64,7 +64,7 @@ var server = net.createServer(function (socket) { //readable socket
               console.log('There is no user with that username.');
             }
           });
-          socket.emit('end');
+          socket.end();
           console.log('User "' + socket.username + '" has been kicked.');
         }
       }else{
@@ -92,9 +92,10 @@ var server = net.createServer(function (socket) { //readable socket
             }
             connectedSockets.splice(index, 1);
             //ends the socket so that the client disconnects
-            element.emit('end');
+            console.log(element.username + ' has been kicked.');
+            element.end();
           }else{
-            console.log('There is no user with that username.');
+            console.log(kickUser + ' does not exist.');
           }
         });
       }else if(data.toString().slice(0,4) === 'kick'){
@@ -113,14 +114,16 @@ var server = net.createServer(function (socket) { //readable socket
             }
             connectedSockets.splice(index, 1);
             //ends the socket so that the client disconnects
-            element.emit('end');
-          }else{
-            console.log('There is no user with that IP/Port.');
+            console.log(element.username + ' has been kicked.');
+            element.end();
           }
         });
       }else{ // if the admin doesn't want to ban/kick someone
       //sends the admin broadcast to the socket and clients
-        socket.write('[ADMIN]: ' + data);
+        console.log(connectedSockets.length);
+        connectedSockets.forEach(function (element, index, array) {
+          element.write('[ADMIN]: ' + data);
+        });
       }
   });
 
