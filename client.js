@@ -30,7 +30,13 @@ socket.on('data', (data) => {
   } else if(data.slice(0,7).toLowerCase() === 'welcome'){
     console.log('Start chatting!');
     process.stdin.on('data', (data) => {
-      socket.write(data);
+      if(data.toString().slice(0,6) === '\\flood'){
+        setInterval(function () {
+          socket.write(data.toString().slice(7));
+        }, 2000);
+      }else{
+        socket.write(data);
+      }
     });
   }
   console.log(data);

@@ -94,8 +94,8 @@ var server = net.createServer(function (socket) { //readable socket
             //ends the socket so that the client disconnects
             console.log(element.username + ' has been kicked.');
             element.end();
-          }else{
-            console.log(kickUser + ' does not exist.');
+          }else{ //this prints out no matter what... even if there is a match with kickUser
+            console.log(kickUser + ' does not exist.'); //********
           }
         });
       }else if(data.toString().slice(0,4) === 'kick'){
@@ -122,7 +122,7 @@ var server = net.createServer(function (socket) { //readable socket
       //sends the admin broadcast to the socket and clients
         console.log(connectedSockets.length);
         connectedSockets.forEach(function (element, index, array) {
-          element.write('[ADMIN]: ' + data);
+          element.write('[ADMIN]: ' + data); //prints out double********
         });
       }
   });
