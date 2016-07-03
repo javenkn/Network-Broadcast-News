@@ -73,11 +73,18 @@ var server = net.createServer(function (socket) { //readable socket
     }
   });
 
+  socket.on('end', () => {
+    console.log('Client disconnected.');
+  });
+});
 
+
+server.listen(CONFIG.PORT, () => {
+  var PORT = server.address().port;
+  console.log('Listening on port', PORT);
 
   //this is for the server input if the admin wants to write/ban something/someone
   process.stdin.on('data', (data) => {
-    console.log('Inside stdin data', data.toString());
     //if the admin wants to kick user by username
       if(data.toString().slice(0,5) === '\\kick'){
         //kick user
@@ -87,23 +94,28 @@ var server = net.createServer(function (socket) { //readable socket
         //goes through the connected sockets array and socket username array
         //and splices the one that is getting kicked
 
-        connectedSockets
-          .filter(function (element, index) {
-            return element.username === kickUser;
-          })
-          .forEach(function (element, index, array) {
-            var indexDelete = socketUsernames.indexOf(element.username);
-            console.log(indexDelete);
-            if(indexDelete !== -1){
-              socketUsernames.splice(indexDelete, 1);
-              connectedSockets.splice(indexDelete, 1);
-            }else {
-              console.log('User does not exist.');
-            }
-            element.end();
-            console.log(connectedSockets);
-            console.log(socketUsernames);
-          });
+        if(socketUsernames.indexOf(kickUser) === -1){ // Non-existing username
+          console.log(kickUser + ' cannot be found.');
+        }else {
+
+          // filter the connectedSockets array to only the ones that equal the kickUser
+          // then for each element in that filtered array splice the specific element from the
+          // connectedSocket array, socketUsernames, and IP/Port array
+          connectedSockets
+            .filter(function (element, index) {
+              return element.username === kickUser;
+            })
+            .forEach(function (element, index, array) {
+              var indexDelete = socketUsernames.indexOf(element.username);
+              if(indexDelete !== -1){
+                socketUsernames.splice(indexDelete, 1);
+                connectedSockets.splice(indexDelete, 1);
+                console.log(element.username + ' has been kicked.');
+                element.end();
+              }
+            });
+        }
+
 
       }else if(data.toString().slice(0,4) === 'kick'){
         //if the admin wants to kick user by IP/Port #
@@ -111,37 +123,46 @@ var server = net.createServer(function (socket) { //readable socket
         //gets the data and obtains the second word of it which is the
         //username
         var kickIPPort = data.toString().split(' ')[1].trim();
-        //goes through the connected sockets array and socket username array
-        //and splices the one that is getting kicked
-        connectedSockets.forEach(function (element, index, array) {
-          if(connectedSockets[index].remoteAddress.slice(7) + ':' +
-          connectedSockets[index].remotePort === kickIPPort){
-            if(socketUsernames.indexOf(connectedSockets[index].username) !== -1){
-              socketUsernames.splice(index, 1);
-            }
-            connectedSockets.splice(index, 1);
-            //ends the socket so that the client disconnects
-            console.log(element.username + ' has been kicked.');
-            element.end();
-          }
+        var IPPortArr = []; //created array for only IP/Ports
+
+        // pushes the IP/Ports of each socket in the connectedSockets array
+        connectedSockets.forEach(function (element) {
+              IPPortArr.push(element.remoteAddress.slice(7) + ':' +
+                element.remotePort);
         });
+        // if the ip port cannot be found
+        if(IPPortArr.indexOf(kickIPPort) === -1) {
+          console.log(kickIPPort + ' cannot be found.');
+        }else { //else
+
+          // filter the connectedSockets array to only the ones that equal the kickIPPort
+          // then for each element in that filtered array splice the specific element from the
+          // connectedSocket array, socketUsernames, and IP/Port array
+          connectedSockets
+            .filter(function (element, index) {
+              return element.remoteAddress.slice(7) + ':' +
+              element.remotePort === kickIPPort;
+            })
+            .forEach(function (element, index, array) {
+              var indexDelete = socketUsernames.indexOf(element.username);
+              if(indexDelete !== -1){ // if it exists
+                IPPortArr.splice(indexDelete,1);
+                socketUsernames.splice(indexDelete, 1);
+                connectedSockets.splice(indexDelete, 1);
+                console.log(element.username + ' has been kicked.');
+                element.end();
+              }else { // it doesn't exist
+                console.log('IP/Port does not exist.');
+              }
+            });
+        }
       }else{ // if the admin doesn't want to ban/kick someone
       //sends the admin broadcast to the socket and clients
-        console.log(connectedSockets.length);
         connectedSockets.forEach(function (element, index, array) {
-          element.write('[ADMIN]: ' + data); //prints out double********
+          element.write('[ADMIN]: ' + data.toString().trim());
         });
       }
   });
-
-  socket.on('end', () => {
-    console.log('Client disconnected.');
-  });
-});
-
-server.listen(CONFIG.PORT, () => {
-  var PORT = server.address().port;
-  console.log('Listening on port', PORT);
 });
 
 server.on('error', function (error) {

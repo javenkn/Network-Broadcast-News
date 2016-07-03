@@ -32,10 +32,10 @@ socket.on('data', (data) => {
     process.stdin.on('data', (data) => {
       if(data.toString().slice(0,6) === '\\flood'){
         setInterval(function () {
-          socket.write(data.toString().slice(7));
+          socket.write(data.toString().slice(7)); //every 2 seconds it prints out the message
         }, 2000);
       }else{
-        socket.write(data);
+        socket.write(data); //else it prints out the original message
       }
     });
   }
