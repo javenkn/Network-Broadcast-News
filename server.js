@@ -77,6 +77,7 @@ var server = net.createServer(function (socket) { //readable socket
 
   //this is for the server input if the admin wants to write/ban something/someone
   process.stdin.on('data', (data) => {
+    console.log('Inside stdin data', data.toString());
     //if the admin wants to kick user by username
       if(data.toString().slice(0,5) === '\\kick'){
         //kick user
@@ -85,19 +86,25 @@ var server = net.createServer(function (socket) { //readable socket
         var kickUser = data.toString().split(' ')[1].trim();
         //goes through the connected sockets array and socket username array
         //and splices the one that is getting kicked
-        connectedSockets.forEach(function (element, index, array) {
-          if(connectedSockets[index].username === kickUser){
-            if(socketUsernames.indexOf(connectedSockets[index].username) !== -1){
-              socketUsernames.splice(index, 1);
+
+        connectedSockets
+          .filter(function (element, index) {
+            return element.username === kickUser;
+          })
+          .forEach(function (element, index, array) {
+            var indexDelete = socketUsernames.indexOf(element.username);
+            console.log(indexDelete);
+            if(indexDelete !== -1){
+              socketUsernames.splice(indexDelete, 1);
+              connectedSockets.splice(indexDelete, 1);
+            }else {
+              console.log('User does not exist.');
             }
-            connectedSockets.splice(index, 1);
-            //ends the socket so that the client disconnects
-            console.log(element.username + ' has been kicked.');
             element.end();
-          }else{ //this prints out no matter what... even if there is a match with kickUser
-            console.log(kickUser + ' does not exist.'); //********
-          }
-        });
+            console.log(connectedSockets);
+            console.log(socketUsernames);
+          });
+
       }else if(data.toString().slice(0,4) === 'kick'){
         //if the admin wants to kick user by IP/Port #
         //kick the ip user
